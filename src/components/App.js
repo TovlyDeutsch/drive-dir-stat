@@ -33,7 +33,6 @@ handleClientLoad() {
  *  listeners.
  */
 async initClient() {
-  console.log(this)
   window.gapi.client.init({
     apiKey: API_KEY,
     clientId: CLIENT_ID,
@@ -53,7 +52,6 @@ async initClient() {
 
 async loadFiles() {
   this.setState({dirStructure: await getAssembledDirStruct()})
-  console.log('dir', this.state.dirStructure)
 }
 
 /**

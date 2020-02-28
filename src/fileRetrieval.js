@@ -31,17 +31,19 @@ async function getFiles() {
       files = files.concat(response.result.files)
       if (response.result.nextPageToken !== nextPageToken) {
         nextPageToken = response.result.nextPageToken
+        sessionStorage.setItem('files', JSON.stringify(files))
+        if (nextPageToken != null) {
+          sessionStorage.setItem('nextPageToken', nextPageToken)
+        }
       }
       else {
         break
       }
     } catch(err) {
-      console.log(err) // TypeError: failed to fetch
+      // TODO display error to user
+      console.log(err)
     }
-    console.log(numRequests, nextPageToken)
-  } while (nextPageToken != null && numRequests < 2);
-  sessionStorage.setItem('files', JSON.stringify(files))
-  console.log('finished')
+  } while (nextPageToken != null && numRequests < 1000);
   return files;
 }
 
@@ -95,7 +97,6 @@ async function getAssembledDirStruct() {
 
 function annotateFileSizes(file) {
   if (!file.hasOwnProperty('children') || file.children.length === 0) {
-    console.log(file.quotaBytesUsed)
     file.bytes = parseFloat(file.quotaBytesUsed)
   }
   else {
