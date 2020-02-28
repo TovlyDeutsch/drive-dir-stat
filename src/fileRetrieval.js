@@ -31,6 +31,7 @@ async function getFiles() {
       files = files.concat(response.result.files)
       if (response.result.nextPageToken !== nextPageToken) {
         nextPageToken = response.result.nextPageToken
+        // TODO check for existence of files and nextPageToken and retrieval start
         sessionStorage.setItem('files', JSON.stringify(files))
         if (nextPageToken != null) {
           sessionStorage.setItem('nextPageToken', nextPageToken)
