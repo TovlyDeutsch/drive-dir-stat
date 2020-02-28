@@ -1,7 +1,6 @@
 import React from 'react';
-import logo from './logo.svg';
-import folderStructureToString from './debug.js'
-import { getFiles, assembleDirStructure } from './fileRetrieval'
+import { getAssembledDirStruct } from '../fileRetrieval'
+import { renderDirStructure } from '../dirStructureDisplay'
 import './App.css';
 
 // Client ID and API key from the Developer Console
@@ -19,7 +18,7 @@ var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
 class App extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {signedIn: null}
+    this.state = {signedIn: null, dirStructure: null}
   }
   /**
  *  On load, called to load the auth2 library and API client library.
@@ -28,7 +27,7 @@ handleClientLoad() {
   window.gapi.load('client:auth2', this.initClient.bind(this));
 }
 
-// TODO consider moving this function to fileRetrieval
+// TODO consider moving this function to fileRetrieval or auth-related file
 /**
  *  Initializes the API client library and sets up sign-in state
  *  listeners.
@@ -50,21 +49,11 @@ async initClient() {
     // TODO handle error
     // appendPre(JSON.stringify(error, null, 2));
   });
-}
+} 
 
-async retrieveAndDisplayFiles() {
-  let filesStored = sessionStorage.getItem('files')
-  let files;
-  if (filesStored){
-    files = JSON.parse(filesStored)
-  }
-  else {
-    files = await getFiles();
-  }
-  let dirStructure = await assembleDirStructure(files)
-  // console.log(folderStructure)
-  this.setState({dirStructure})
-  // document.getElementById('results').innerHTML = folderStructureToString(dirStructure, 0)
+async loadFiles() {
+  this.setState({dirStructure: await getAssembledDirStruct()})
+  console.log('dir', this.state.dirStructure)
 }
 
 /**
@@ -74,7 +63,7 @@ async retrieveAndDisplayFiles() {
 async updateSigninStatus(isSignedIn) {
   if (isSignedIn) {
     this.setState({signedIn: true})
-    await this.displayFiles()
+    await this.loadFiles()
   } else {
     this.setState({signedIn: false})
   }
@@ -100,19 +89,6 @@ async updateSigninStatus(isSignedIn) {
     sessionStorage.clear()
   }
 
-  /**
-   * Append a pre element to the body containing the given message
-   * as its text node. Used to display the results of the API call.
-   *
-   * @param {string} message Text to be placed in pre element.
-   */
-   appendPre(message) {
-    var pre = document.getElementById('content');
-    var textContent = document.createTextNode(message + '\n');
-    pre.appendChild(textContent);
-  }
-
-
   componentDidMount() {
     this.script = document.createElement("script");
     this.script.src = "https://apis.google.com/js/api.js";
@@ -121,25 +97,28 @@ async updateSigninStatus(isSignedIn) {
     this.script.onload = (e) => {this.handleClientLoad()};
     document.body.appendChild(this.script);
   }
-  render = () => (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-          <p>Drive API Quickstart</p>
 
-          {this.state.signedIn === false &&
-            <button id="authorize_button"
-              onClick={this.handleAuthClick}>Authorize</button>}
-          {this.state.signedIn === true &&
-            <button id="signout_button"
-              onClick={this.handleSignoutClick}>Sign Out</button>}
-          <button id="clear_cache" onClick={sessionStorage.clear}>Clear Cache</button>
-      
-          <pre id="content" style={{whiteSpace: 'pre-wrap'}}></pre>
-          <p id='results'></p>
-      </header>
-    </div>
-  )
+
+  render() { 
+    return(
+      <div className="App">
+        <header className="App-header">
+            <p>DriveDirStat</p>
+
+            {this.state.signedIn === false &&
+              <button id="authorize_button"
+                onClick={this.handleAuthClick}>Authorize</button>}
+            {this.state.signedIn === true &&
+              <button id="signout_button"
+                onClick={this.handleSignoutClick}>Sign Out</button>}
+            <button id="clear_cache" onClick={sessionStorage.clear}>Clear Cache</button>
+        
+            <pre id="content" style={{whiteSpace: 'pre-wrap'}}></pre>
+            {this.state.dirStructure && renderDirStructure(this.state.dirStructure)}
+        </header>
+      </div>
+    )
+  }
 }
 
 export default App;

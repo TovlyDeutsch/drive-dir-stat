@@ -50,34 +50,50 @@ async function assembleDirStructure(files) {
   let rootFolderResponse = await window.gapi.client.drive.files.get({fileId: 'root'})
   let rootFolder = rootFolderResponse.result
   let rootFolderId = rootFolder.id
-  let knownIds = {}
-  knownIds[rootFolderId] = [rootFolderId]
-  rootFolder.children = []
-  let folderStructure = {children: {}}
-  folderStructure.children[rootFolderId] = rootFolder
+  let folderPaths = {}
+  folderPaths[rootFolderId] = []
   let filedIds = new Set([rootFolderId])
+  rootFolder.children = {}
+
   function placeFiles() {
     for (let file of files) {
-      if (file.parents && knownIds.hasOwnProperty(file.parents[0]) && !filedIds.has(file.id)) {
-        let path = knownIds[file.parents[0]]
-        let currentObj = folderStructure
+      if (file.parents && folderPaths.hasOwnProperty(file.parents[0]) && !filedIds.has(file.id)) {
+        let path = folderPaths[file.parents[0]]
+        let currentObj = rootFolder
         for (let el of path) {
           currentObj = currentObj.children[el]
         }
         if (!currentObj.hasOwnProperty('children')) { currentObj.children = {}}
         currentObj.children[file.id] = file
         if (file.mimeType === 'application/vnd.google-apps.folder') {
-          knownIds[file.id] = path.concat(file.id)
+          folderPaths[file.id] = path.concat(file.id)
         }
       }
     }
   }
+
   let numAttempts = 0
   while (filedIds.size < files.length && numAttempts < 20) {
     placeFiles()
     numAttempts++
   }
-  return folderStructure
+  return rootFolder
 }
 
-export { getFiles, assembleDirStructure }
+async function getAssembledDirStruct() {
+  let filesStored = sessionStorage.getItem('files')
+  let files;
+  if (filesStored){
+    files = JSON.parse(filesStored)
+  }
+  else {
+    files = await getFiles();
+  }
+  return await assembleDirStructure(files)
+}
+
+function annotateFileSizes() {
+  
+}
+
+export { getFiles, assembleDirStructure, getAssembledDirStruct }
