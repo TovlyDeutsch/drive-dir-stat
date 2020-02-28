@@ -1,7 +1,7 @@
 import React from 'react';
 import NavFile from './components/navFile'
 
-// TODO simplify this function
+// TODO simplify/delete this function
 function folderStructureToString(file, descendancyLevel) {
   let totalString = file.name ? file.name + '<br>' : '<br>'
   if (file.hasOwnProperty('children') && Object.entries(file.children).length !== 0) {
@@ -25,10 +25,6 @@ function renderDirStructure(file, level) {
     for (let childFile of Object.values(file.children)) {
       children.push(renderDirStructure(childFile, level + 1))
     }
-    // return <NavFile name={file.name} children={children} key={file.id} level={level}/>
-  }
-  else {
-    // return <NavFile name={file.name} key={file.id} level={level}/>
   }
   return <NavFile name={file.name} children={children} key={file.id} level={level}/>
 }

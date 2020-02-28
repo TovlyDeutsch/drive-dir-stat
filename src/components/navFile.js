@@ -16,6 +16,7 @@ class NavFile extends React.Component {
     return (<div>
       <p onClick={handleClick}>
         {/* TODO make/get bytes, kb, mb, gb formatter */}
+        {String.fromCharCode(160).repeat(this.props.level * 4)}
         {openerButton} {this.props.name} {`(${this.state.bytes / 1000})`}
         </p>
       {this.state.childrenVisible && this.props.children}

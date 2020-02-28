@@ -102,7 +102,6 @@ async updateSigninStatus(isSignedIn) {
   render() { 
     return(
       <div className="App">
-        <header className="App-header">
             <p>DriveDirStat</p>
 
             {this.state.signedIn === false &&
@@ -114,8 +113,7 @@ async updateSigninStatus(isSignedIn) {
             <button id="clear_cache" onClick={sessionStorage.clear}>Clear Cache</button>
         
             <pre id="content" style={{whiteSpace: 'pre-wrap'}}></pre>
-            {this.state.dirStructure && renderDirStructure(this.state.dirStructure)}
-        </header>
+            {this.state.dirStructure && renderDirStructure(this.state.dirStructure, 0)}
       </div>
     )
   }
