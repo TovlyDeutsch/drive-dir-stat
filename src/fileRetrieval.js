@@ -1,3 +1,5 @@
+let fileFields = "id, name, mimeType, parents, quotaBytesUsed"
+
 async function getFiles() {
   // 1000 is maximum retrieval size
   // adapted from Google Drive API documentation quickstart //(https://developers.google.com/drive/v3/web/quickstart/js)
@@ -10,7 +12,7 @@ async function getFiles() {
   do {
     let parameters = {
       'pageSize': 1000,
-      'fields': "nextPageToken, files(id, name, mimeType, parents, quotaBytesUsed)",
+      'fields': `nextPageToken, files(${fileFields})`,
       // 'fields': "nextPageToken, files(\
       // id, name, createdTime, fileExtension, quotaBytesUsed, owners, ownedByMe, webViewLink, mimeType)",
       // 'q': "mimeType='image/jpeg'",
@@ -47,7 +49,7 @@ async function getFiles() {
 }
 
 async function assembleDirStructure(files) {
-  let rootFolderResponse = await window.gapi.client.drive.files.get({fileId: 'root'})
+  let rootFolderResponse = await window.gapi.client.drive.files.get({fileId: 'root', fields: fileFields})
   let rootFolder = rootFolderResponse.result
   let rootFolderId = rootFolder.id
   let folderPaths = {}
@@ -76,7 +78,9 @@ async function assembleDirStructure(files) {
   while (filedIds.size < files.length && numAttempts < 20) {
     placeFiles()
     numAttempts++
-  }
+  } 
+  // TODO consider reformatting here to avoid the constant need for Object.Values
+  annotateFileSizes(rootFolder)
   return rootFolder
 }
 
@@ -92,8 +96,21 @@ async function getAssembledDirStruct() {
   return await assembleDirStructure(files)
 }
 
-function annotateFileSizes() {
-  
+function annotateFileSizes(file) {
+  if (file.name === 'My Drive') {
+    debugger
+  }
+  if (!file.hasOwnProperty('children') || file.children.length === 0) {
+    console.log(file.quotaBytesUsed)
+    file.bytes = parseFloat(file.quotaBytesUsed)
+  }
+  else {
+    let childrenList = Object.values(file.children)
+    file.bytes = parseFloat(file.quotaBytesUsed) + childrenList.reduce(
+      (acc, childFile) => acc + annotateFileSizes(childFile), 0
+      )
+  }
+  return file.bytes
 }
 
 export { getFiles, assembleDirStructure, getAssembledDirStruct }

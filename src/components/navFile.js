@@ -3,7 +3,7 @@ import React from 'react';
 class NavFile extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {bytes: null, childrenVisible: false}
+    this.state = {childrenVisible: false}
   }
 
   render() { 
@@ -17,7 +17,7 @@ class NavFile extends React.Component {
       <p onClick={handleClick}>
         {/* TODO make/get bytes, kb, mb, gb formatter */}
         {String.fromCharCode(160).repeat(this.props.level * 4)}
-        {openerButton} {this.props.name} {`(${this.state.bytes / 1000})`}
+        {openerButton} {this.props.name} {`(${this.props.bytes / 1000})`}
         </p>
       {this.state.childrenVisible && this.props.children}
       </div>)
