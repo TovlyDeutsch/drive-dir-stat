@@ -3,12 +3,9 @@ let fileFields = "id, name, mimeType, parents, quotaBytesUsed"
 async function getFiles() {
   // 1000 is maximum retrieval size
   // adapted from Google Drive API documentation quickstart //(https://developers.google.com/drive/v3/web/quickstart/js)
-  // add shared with me = false, currently not working
-
   let nextPageToken = null;
   let files = [];
   let numRequests = 0;
-// TODO abstract streaming for nextpage thing
   do {
     let parameters = {
       'pageSize': 1000,
@@ -97,9 +94,6 @@ async function getAssembledDirStruct() {
 }
 
 function annotateFileSizes(file) {
-  if (file.name === 'My Drive') {
-    debugger
-  }
   if (!file.hasOwnProperty('children') || file.children.length === 0) {
     console.log(file.quotaBytesUsed)
     file.bytes = parseFloat(file.quotaBytesUsed)
