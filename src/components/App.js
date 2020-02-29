@@ -27,7 +27,7 @@ handleClientLoad() {
   window.gapi.load('client:auth2', this.initClient.bind(this));
 }
 
-// TODO consider moving this function to fileRetrieval or auth-related file
+// TODO consider moving this function (and above credentials) to fileRetrieval or auth-related file
 /**
  *  Initializes the API client library and sets up sign-in state
  *  listeners.
