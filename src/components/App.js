@@ -2,6 +2,7 @@ import React from 'react';
 import { getFiles, assembleDirStructure } from '../fileRetrieval'
 import { renderDirStructure } from '../dirStructureDisplay'
 import './App.css';
+import * as localForage from "localforage";
 
 // Client ID and API key from the Developer Console
 var CLIENT_ID = '363872304328-t3h8sa4icpbaj9lkrpraf5ujoidtsc6h.apps.googleusercontent.com';
@@ -50,8 +51,9 @@ async initClient() {
 } 
 
 async loadFiles() {
-  this.setState({loading: true})
-  this.setState({dirStructure: await this.getAssembledDirStruct(), loading: false})
+  this.setState({loading: true, dirStructure: null})
+  let dirStruct = await this.getAssembledDirStruct()
+  this.setState({dirStructure: dirStruct, loading: false})
 }
 
 /**
@@ -84,7 +86,7 @@ async updateSigninStatus(isSignedIn) {
    *  Clear cache and reload files.
    */
    async handleCacheClearClick(event) {
-    sessionStorage.clear()
+    localForage.clear()
     await this.loadFiles()
   }
 
@@ -99,10 +101,13 @@ async updateSigninStatus(isSignedIn) {
 
   async getAssembledDirStruct() {
     this.setState({numRequests: 0})
-    let filesStored = JSON.parse(sessionStorage.getItem('files'))
-    let nextPageToken = sessionStorage.getItem('nextPageToken')
-    let files = [];
+    // let filesStored = JSON.parse(await localForage.getItem('files'))
+    // let nextPageToken = await localForage.getItem('nextPageToken')
+    let filesStored;
+    let nextPageToken;
+    let files = filesStored ? filesStored : [];
     if (filesStored && !nextPageToken){
+      console.log('loading cached')
       files = JSON.parse(filesStored)
     }
     else {
@@ -110,7 +115,9 @@ async updateSigninStatus(isSignedIn) {
         let fileResult = await getFiles(nextPageToken);
         if (fileResult) {
           var [newFiles, newNextPageToken] = fileResult
+          console.log('conning new files', files.length)
           files = files.concat(newFiles)
+          console.log('conning new files', files.length)
         }
         else {
           return false
@@ -118,13 +125,14 @@ async updateSigninStatus(isSignedIn) {
   
         if (newNextPageToken !== nextPageToken) {
           nextPageToken = newNextPageToken
-          sessionStorage.setItem('files', JSON.stringify(files))
-          if (nextPageToken != null) {
-            sessionStorage.setItem('nextPageToken', nextPageToken)
-          }
+          // localForage.setItem('files', JSON.stringify(files))
+          // if (nextPageToken != null) {
+          //   localForage.setItem('nextPageToken', nextPageToken)
+          // }
         }
         this.setState({numRequests: this.state.numRequests + 1})
-      } while (nextPageToken && this.state.numRequests < 1) 
+        console.log(nextPageToken)
+      } while (nextPageToken && this.state.numRequests < 5000) 
     }
     console.log(files)
     return await assembleDirStructure(files)

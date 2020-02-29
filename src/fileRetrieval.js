@@ -1,4 +1,4 @@
-let fileFields = "id, name, mimeType, parents, quotaBytesUsed"
+let fileFields = "id, name, parents, quotaBytesUsed"
 
 async function getFiles(nextPageToken) {
   // 1000 is maximum retrieval size
@@ -12,14 +12,17 @@ async function getFiles(nextPageToken) {
 
   // if not first request, set the pageToken to the next page
   if (nextPageToken) { 
+    console.log('setting next page')
     parameters.pageToken = nextPageToken
   }
   
   try {
     let response = await window.gapi.client.drive.files.list(parameters);
     files = files.concat(response.result.files)
+    console.log('success req')
     return [files, response.result.nextPageToken];
   } catch(err) {
+    console.log('fail req')
     return null
   }
 }
@@ -39,22 +42,34 @@ async function assembleDirStructure(files) {
   function getFileFromPath(path) {
     let currentObj = rootFolder
     for (let el of path) {
+      if (!currentObj.children[el]) {return null}
       currentObj = attachChildProp(currentObj.children[el])
     }
     return currentObj
   }
 
   for (let file of files) {
+    if (!file.parents) {
+      console.log(file)
+      continue
+    }
     let parentId = file.parents[0]
     let unseenParent = !folderPaths.hasOwnProperty(parentId)
     let path = unseenParent ? [parentId] : folderPaths[parentId]
-    if (unseenParent) {  // if a path to parent doesn't exist, we need a dummy/unseen node for parent
+    // if a path to parent doesn't exist, we need create a dummy/unseen node for parent
+    if (unseenParent && !rootFolder.children[parentId]) {
       rootFolder.children[parentId] = {unseen: true, id: parentId, children: {}}
     }
-    getFileFromPath(path).children[file.id] = file
     if (rootFolder.children.hasOwnProperty(file.id) && rootFolder.children[file.id].unseen) {
       file.children = JSON.parse(JSON.stringify(rootFolder.children[file.id].children))
       delete rootFolder[file.id]
+    }
+    let parent = getFileFromPath(path)
+    if (parent) {
+      parent.children[file.id] = file
+    }
+    else {
+      console.log(path, file)
     }
     folderPaths[file.id] = path.concat(file.id)
   }
@@ -65,14 +80,14 @@ async function assembleDirStructure(files) {
       delete rootFolder.children[rootNestedFileId]
     }
   }
-  console.log(rootFolder)
   annotateFileSizes(rootFolder)
+  // console.log(rootFolder)
   return rootFolder
 }
 
 function annotateFileSizes(file) {
   if (!file.hasOwnProperty('children') || file.children.length === 0) {
-    file.bytes = parseFloat(file.quotaBytesUsed)
+    file.bytes = parseFloat(file.quotaBytesUsed) + 1
   }
   else {
     let childrenList = Object.values(file.children)
@@ -80,6 +95,7 @@ function annotateFileSizes(file) {
       (acc, childFile) => acc + annotateFileSizes(childFile), 0
       )
   }
+  if (file.name === 'My Drive') {console.log(file.bytes)}
   return file.bytes
 }
 
