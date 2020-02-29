@@ -41,52 +41,48 @@ async function getFiles() {
   return files;
 }
 
-// TODO simplify/refactor this function
+
+
 async function assembleDirStructure(files) {
+  function attachChildProp(obj) {
+    if (!obj.hasOwnProperty('children')) {obj.children = {}}
+    return obj
+  }
+
   let rootFolderResponse = await window.gapi.client.drive.files.get({fileId: 'root', fields: fileFields})
-  let rootFolder = rootFolderResponse.result
-  let folderPaths = {}
-  folderPaths[rootFolder.id] = []
-  let unfiledFiles = new Set(files)
-  rootFolder.children = {}
+  let rootFolder = attachChildProp(rootFolderResponse.result)
+  let folderPaths = {[rootFolder.id]: []}
 
-  for (let file of unfiledFiles) {
-    let path = [];
-    let dummyParent = true
-    let parentId = file.parents[0]
-    if (folderPaths.hasOwnProperty(parentId)) {
-      path = folderPaths[parentId]
-      dummyParent = false;
-    }
-
-    if (dummyParent) {  // if a path to parent doesn't exist, we need a dummy node for parent
-      rootFolder.children[parentId] = {dummy: true, id: parentId, children: {}}
-      path = [parentId]
-    }
-
+  function getFileFromPath(path) {
     let currentObj = rootFolder
     for (let el of path) {
-      currentObj = currentObj.children[el]
+      currentObj = attachChildProp(currentObj.children[el])
     }
-    if (!currentObj.hasOwnProperty('children')) { currentObj.children = {}}
-    currentObj.children[file.id] = file
-    if (rootFolder.hasOwnProperty(file.id) && rootFolder[file.id].dummy) {
-      // TODO see if this object copy is not necessary
-      file.children = JSON.parse(JSON.stringify(rootFolder[file.id].children))
+    return currentObj
+  }
+
+  for (let file of files) {
+    let parentId = file.parents[0]
+    let unseenParent = !folderPaths.hasOwnProperty(parentId)
+    let path = unseenParent ? [parentId] : folderPaths[parentId]
+    if (unseenParent) {  // if a path to parent doesn't exist, we need a dummy/unseen node for parent
+      rootFolder.children[parentId] = {unseen: true, id: parentId, children: {}}
+    }
+    getFileFromPath(path).children[file.id] = file
+    if (rootFolder.children.hasOwnProperty(file.id) && rootFolder.children[file.id].unseen) {
+      file.children = JSON.parse(JSON.stringify(rootFolder.children[file.id].children))
       delete rootFolder[file.id]
     }
-    if (file.mimeType === 'application/vnd.google-apps.folder') {
-      folderPaths[file.id] = path.concat(file.id)
-    }
+    folderPaths[file.id] = path.concat(file.id)
   }
   
-  // prune dummy nodes
+  // prune dummy/unseen nodes
   for (let rootNestedFileId in rootFolder.children) {
-    if (rootFolder.children[rootNestedFileId].dummy) {
+    if (rootFolder.children[rootNestedFileId].unseen) {
       delete rootFolder.children[rootNestedFileId]
     }
   }
-  // TODO consider reformatting here to avoid the constant need for Object.Values
+  
   annotateFileSizes(rootFolder)
   return rootFolder
 }
