@@ -4,7 +4,6 @@ import NavFile from './components/navFile'
 function renderDirStructure(file, level) {
   let children = [];
   if (file.hasOwnProperty('children') && Object.entries(file.children).length > 0) {
-    // TODO convert this to map
     for (let childFile of Object.values(file.children)) {
       children.push(renderDirStructure(childFile, level + 1))
     }
