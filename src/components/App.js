@@ -1,5 +1,5 @@
 import React from 'react';
-import { getAssembledDirStruct } from '../fileRetrieval'
+import { getFiles, assembleDirStructure } from '../fileRetrieval'
 import { renderDirStructure } from '../dirStructureDisplay'
 import './App.css';
 
@@ -18,7 +18,7 @@ var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
 class App extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {signedIn: null, dirStructure: null}
+    this.state = {signedIn: null, dirStructure: null, loading: false, signInError: false}
   }
   /**
  *  On load, called to load the auth2 library and API client library.
@@ -45,13 +45,13 @@ async initClient() {
     // Handle the initial sign-in state.
     await this.updateSigninStatus(window.gapi.auth2.getAuthInstance().isSignedIn.get());
   }, function(error) {
-    // TODO handle error
-    // appendPre(JSON.stringify(error, null, 2));
+    this.setState({signInError: true})
   });
 } 
 
 async loadFiles() {
-  this.setState({dirStructure: await getAssembledDirStruct()})
+  this.setState({loading: true})
+  this.setState({dirStructure: await this.getAssembledDirStruct(), loading: false})
 }
 
 /**
@@ -81,10 +81,11 @@ async updateSigninStatus(isSignedIn) {
   }
 
   /**
-   *  Sign out the user upon button click.
+   *  Clear cache and reload files.
    */
-   handleCacheClearClick(event) {
+   async handleCacheClearClick(event) {
     sessionStorage.clear()
+    await this.loadFiles()
   }
 
   componentDidMount() {
@@ -94,6 +95,39 @@ async updateSigninStatus(isSignedIn) {
     this.script.defer = true;
     this.script.onload = (e) => {this.handleClientLoad()};
     document.body.appendChild(this.script);
+  }
+
+  async getAssembledDirStruct() {
+    this.setState({numRequests: 0})
+    let filesStored = JSON.parse(sessionStorage.getItem('files'))
+    let nextPageToken = sessionStorage.getItem('nextPageToken')
+    let files = [];
+    if (filesStored && !nextPageToken){
+      files = JSON.parse(filesStored)
+    }
+    else {
+      do {
+        let fileResult = await getFiles(nextPageToken);
+        if (fileResult) {
+          var [newFiles, newNextPageToken] = fileResult
+          files = files.concat(newFiles)
+        }
+        else {
+          return false
+        }
+  
+        if (newNextPageToken !== nextPageToken) {
+          nextPageToken = newNextPageToken
+          sessionStorage.setItem('files', JSON.stringify(files))
+          if (nextPageToken != null) {
+            sessionStorage.setItem('nextPageToken', nextPageToken)
+          }
+        }
+        this.setState({numRequests: this.state.numRequests + 1})
+      } while (nextPageToken && this.state.numRequests < 1) 
+    }
+    console.log(files)
+    return await assembleDirStructure(files)
   }
 
 
@@ -108,9 +142,14 @@ async updateSigninStatus(isSignedIn) {
             {this.state.signedIn === true &&
               <button id="signout_button"
                 onClick={this.handleSignoutClick}>Sign Out</button>}
-            <button id="clear_cache" onClick={sessionStorage.clear}>Clear Cache</button>
-        
-            <pre id="content" style={{whiteSpace: 'pre-wrap'}}></pre>
+            <button id="clear_cache" onClick={this.handleCacheClearClick.bind(this)}>Clear cache and reload files</button>
+              <br></br>
+              <br></br>
+            {this.state.loading && 'Loading...'}
+              <br></br>
+              <br></br>
+            {this.state.numRequests}
+            {this.state.signInError && 'Sign-in Error'}
             {this.state.dirStructure && renderDirStructure(this.state.dirStructure, 0)}
       </div>
     )

@@ -1,44 +1,27 @@
 let fileFields = "id, name, mimeType, parents, quotaBytesUsed"
 
-async function getFiles() {
+async function getFiles(nextPageToken) {
   // 1000 is maximum retrieval size
   // adapted from Google Drive API documentation quickstart //(https://developers.google.com/drive/v3/web/quickstart/js)
-  let nextPageToken = null;
   let files = [];
-  let numRequests = 0;
-  do {
-    let parameters = {
-      'pageSize': 1000,
-      'fields': `nextPageToken, files(${fileFields})`,
-      q: "trashed = false and 'me' in owners",
-    }
+  let parameters = {
+    'pageSize': 1000,
+    'fields': `nextPageToken, files(${fileFields})`,
+    q: "trashed = false and 'me' in owners",
+  }
+
+  // if not first request, set the pageToken to the next page
+  if (nextPageToken) { 
+    parameters.pageToken = nextPageToken
+  }
   
-    // if not first request, set the pageToken to the next page
-    if (nextPageToken) { 
-      parameters.pageToken = nextPageToken
-    }
-    
-    try {
-      let response = await window.gapi.client.drive.files.list(parameters);
-      numRequests++
-      files = files.concat(response.result.files)
-      if (response.result.nextPageToken !== nextPageToken) {
-        nextPageToken = response.result.nextPageToken
-        // TODO check for existence of files and nextPageToken and retrieval start
-        sessionStorage.setItem('files', JSON.stringify(files))
-        if (nextPageToken != null) {
-          sessionStorage.setItem('nextPageToken', nextPageToken)
-        }
-      }
-      else {
-        break
-      }
-    } catch(err) {
-      // TODO display error to user
-      console.log(err)
-    }
-  } while (nextPageToken != null && numRequests < 1);
-  return files;
+  try {
+    let response = await window.gapi.client.drive.files.list(parameters);
+    files = files.concat(response.result.files)
+    return [files, response.result.nextPageToken];
+  } catch(err) {
+    return null
+  }
 }
 
 
@@ -82,22 +65,9 @@ async function assembleDirStructure(files) {
       delete rootFolder.children[rootNestedFileId]
     }
   }
-  
+  console.log(rootFolder)
   annotateFileSizes(rootFolder)
   return rootFolder
-}
-
-async function getAssembledDirStruct() {
-  let filesStored = sessionStorage.getItem('files')
-  let files;
-  if (filesStored){
-    files = JSON.parse(filesStored)
-  }
-  else {
-    console.log('fetching files')
-    files = await getFiles();
-  }
-  return await assembleDirStructure(files)
 }
 
 function annotateFileSizes(file) {
@@ -113,4 +83,4 @@ function annotateFileSizes(file) {
   return file.bytes
 }
 
-export { getFiles, assembleDirStructure, getAssembledDirStruct }
+export { getFiles, assembleDirStructure}
