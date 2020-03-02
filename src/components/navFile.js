@@ -24,7 +24,7 @@ class NavFile extends React.Component {
           <p className='dots'>
             {this.props.level !== 0 ? String.fromCharCode(183).repeat(4) : String.fromCharCode(160).repeat(3)}
           </p>
-          {openerButton} {this.props.name} {`(${this.props.bytes})`}
+          {openerButton} {this.props.name} {this.props.bytes > 0 && `(${this.props.formattedBytes})`}
           </div>
         {this.state.childrenVisible && this.props.children}
         </div>
