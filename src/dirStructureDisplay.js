@@ -4,7 +4,8 @@ import NavFile from './components/NavFile'
 function renderDirStructure(file, level) {
   let children = [];
   if (file.hasOwnProperty('children') && Object.entries(file.children).length > 0) {
-    for (let childFile of Object.values(file.children)) {
+    let sortedChildren = Object.values(file.children).sort((file1, file2)  => file2.bytes - file1.bytes)
+    for (let childFile of sortedChildren) {
       children.push(renderDirStructure(childFile, level + 1))
     }
   }
