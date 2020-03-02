@@ -2,7 +2,6 @@ import React from 'react';
 import { getFiles, assembleDirStructure } from '../fileRetrieval'
 import { renderDirStructure } from '../dirStructureDisplay'
 import './App.css';
-import * as localForage from "localforage";
 
 // Client ID and API key from the Developer Console
 var CLIENT_ID = '363872304328-t3h8sa4icpbaj9lkrpraf5ujoidtsc6h.apps.googleusercontent.com';
@@ -86,7 +85,6 @@ async updateSigninStatus(isSignedIn) {
    *  Clear cache and reload files.
    */
    async handleCacheClearClick(event) {
-    localForage.clear()
     await this.loadFiles()
   }
 
@@ -101,8 +99,6 @@ async updateSigninStatus(isSignedIn) {
 
   async getAssembledDirStruct() {
     this.setState({numRequests: 0})
-    // let filesStored = JSON.parse(await localForage.getItem('files'))
-    // let nextPageToken = await localForage.getItem('nextPageToken')
     let filesStored;
     let nextPageToken;
     let files = filesStored ? filesStored : [];
@@ -125,10 +121,6 @@ async updateSigninStatus(isSignedIn) {
   
         if (newNextPageToken !== nextPageToken) {
           nextPageToken = newNextPageToken
-          // localForage.setItem('files', JSON.stringify(files))
-          // if (nextPageToken != null) {
-          //   localForage.setItem('nextPageToken', nextPageToken)
-          // }
         }
         this.setState({numRequests: this.state.numRequests + 1})
         console.log(nextPageToken)
