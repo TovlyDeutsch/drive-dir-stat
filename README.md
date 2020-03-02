@@ -10,6 +10,8 @@ Visit [drive-dir-stat.github.io](https://drive-dir-stat.github.io) and click "si
 
 I welcome any contributions! The biggest issue with the app right now is its slowness, which is constrained by the file limit of the Google Drive API. One solution to this might be running the requesting code on a server and notifying the user when their analysis is complete (e.g. via email or push notifications). This wouldn't speed up the process but at least the user wouldn't have to worry about keeping the tab open and their computer on.
 
+I've tried adding local caching of results via the [localforage library](https://github.com/localForage/localForage) but the results quickly exhaust the maximum storage sizes of the underlying APIs (e.g. IndexedDB or localStorage). I welcome any other ideas on how to do this.
+
 Another area that could use work is the UI which is relatively basic at the moment.
 
 Lastly, I'd like to extend the app to support cloud storage providers other than Google Drive (e.g. OneDrive).
