@@ -9,7 +9,10 @@ function renderDirStructure(file, level) {
       children.push(renderDirStructure(childFile, level + 1))
     }
   }
-  return <NavFile name={file.name} children={children} key={file.id} level={level} bytes={file.formattedBytes}/>
+  return <NavFile name={file.name} children={children} key={file.id} level={level} 
+    bytes={file.bytes}
+    formattedBytes={file.formattedBytes}
+  />
 }
 
 export { renderDirStructure }
