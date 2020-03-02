@@ -61,7 +61,7 @@ class App extends React.Component {
             window.gapi.auth2.getAuthInstance().isSignedIn.get()
           );
         },
-        function(error) {
+        error => {
           this.setState({ signInError: true });
         }
       );
