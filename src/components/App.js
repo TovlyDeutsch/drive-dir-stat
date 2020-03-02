@@ -150,13 +150,12 @@ async updateSigninStatus(isSignedIn) {
             {this.state.signedIn === true &&
               <button id="signout_button"
                 onClick={this.handleSignoutClick}>Sign Out</button>}
-            <button id="clear_cache" onClick={this.handleCacheClearClick.bind(this)}>Clear cache and reload files</button>
+            {/* <button id="clear_cache" onClick={this.handleCacheClearClick.bind(this)}>Clear cache and reload files</button> */}
               <br></br>
               <br></br>
             {this.state.loading && 'Loading...'}
               <br></br>
-              <br></br>
-            {this.state.numRequests}
+            {`Number of requests received: ${this.state.numRequests}`}
             {this.state.signInError && 'Sign-in Error'}
             <div className="results">
               {this.state.dirStructure && renderDirStructure(this.state.dirStructure, 0)}
