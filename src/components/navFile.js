@@ -18,7 +18,7 @@ class NavFile extends React.Component {
     }
     return (
       <div
-        className={this.props.level !== 0 && "row"}
+        className={classNames({ row: this.props.level !== 0 })}
         style={{ marginLeft: 20 }}
       >
         <div
