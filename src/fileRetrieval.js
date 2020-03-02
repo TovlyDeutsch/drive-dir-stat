@@ -88,7 +88,7 @@ async function assembleDirStructure(files) {
 
 function annotateFileSizes(file) {
   if (!file.hasOwnProperty('children') || file.children.length === 0) {
-    file.bytes = parseFloat(file.quotaBytesUsed) + 1
+    file.bytes = parseFloat(file.quotaBytesUsed)
   }
   else {
     let childrenList = Object.values(file.children)
