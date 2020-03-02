@@ -69,8 +69,8 @@ class App extends React.Component {
 
   async loadFiles() {
     this.setState({ loading: true, dirStructure: null });
-    await this.loadDirStruct();
-    this.setState({ finishedRequesting: true, loading: false });
+    let loadResult = await this.loadDirStruct();
+    this.setState({ finishedRequesting: loadResult, loading: false });
   }
 
   /**
@@ -95,16 +95,10 @@ class App extends React.Component {
   /**
    *  Sign out the user upon button click.
    */
-  handleSignoutClick(event) {
+  handleSignoutClick = event => {
+    this.setState({ signedIn: false });
     window.gapi.auth2.getAuthInstance().signOut();
-  }
-
-  /**
-   *  Clear cache and reload files.
-   */
-  async handleCacheClearClick(event) {
-    await this.loadFiles();
-  }
+  };
 
   componentDidMount() {
     this.script = document.createElement("script");
@@ -139,7 +133,10 @@ class App extends React.Component {
         numRequests: this.state.numRequests + 1,
         dirStructure: assembledDirStructure
       });
-    } while (nextPageToken);
+    } while (nextPageToken && this.state.signedIn);
+    if (!this.state.signInError) {
+      return false;
+    }
   }
 
   render() {
@@ -184,6 +181,7 @@ class App extends React.Component {
         <br></br>
         {this.state.finishedRequesting && "Finished requesting"}
         {`Number of requests received: ${this.state.numRequests}`}
+        <br></br>
         {this.state.signInError && "Sign-in Error"}
         <div className="results">
           {this.state.dirStructure &&
