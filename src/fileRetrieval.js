@@ -1,4 +1,5 @@
 let fileFields = "id, name, parents, quotaBytesUsed"
+let mimeQuery = '((not mimeType contains "application/vnd.google-apps") or mimeType = "application/vnd.google-apps.folder")'
 
 async function getFiles(nextPageToken) {
   // 1000 is maximum retrieval size
@@ -7,7 +8,7 @@ async function getFiles(nextPageToken) {
   let parameters = {
     'pageSize': 1000,
     'fields': `nextPageToken, files(${fileFields})`,
-    q: "trashed = false and 'me' in owners",
+    q: `trashed = false and 'me' in owners and ${mimeQuery}`
   }
 
   // if not first request, set the pageToken to the next page
@@ -23,7 +24,7 @@ async function getFiles(nextPageToken) {
     return [files, response.result.nextPageToken];
   } catch(err) {
     console.log('fail req')
-    return null
+    return [files, nextPageToken];
   }
 }
 
