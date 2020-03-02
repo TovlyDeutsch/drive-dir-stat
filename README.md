@@ -4,7 +4,7 @@ DriveDirStat analyzes your cloud storage to figure out what is taking up space. 
 
 ## Usage
 
-Visit [drive-dir-stat.github.io](https://drive-dir-stat.github.io) and click "sign in" to authorize DriveDirStat. The app will begin sending requests to the Google Drive API. The API is limited to 1000 files per request so if you have many files in your drive, the process will take a while (often > 2 hours); don't close the tab or shut off your computer while this process is running as that will terminate the analysis. Once the app has finished it will display "Finished requesting" and you can explore your drive by clicking on the ▶ icons to open folders.
+Visit [drivedirstat.netlify.com](https://drivedirstat.netlify.com/) and click "sign in" to authorize DriveDirStat. The app will begin sending requests to the Google Drive API. The API is limited to 1000 files per request so if you have many files in your drive, the process will take a while (often > 2 hours); don't close the tab or shut off your computer while this process is running as that will terminate the analysis. Once the app has finished it will display "Finished requesting" and you can explore your drive by clicking on the ▶ icons to open folders.
 
 ## Contributing
 
