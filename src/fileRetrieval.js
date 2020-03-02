@@ -1,4 +1,5 @@
 let fileFields = "id, name, parents, quotaBytesUsed";
+// TODO figure out how to exclude files in backups ("Computers")
 let mimeQuery =
   '((not mimeType contains "application/vnd.google-apps") or mimeType = "application/vnd.google-apps.folder")';
 
