@@ -13,17 +13,14 @@ async function getFiles(nextPageToken) {
 
   // if not first request, set the pageToken to the next page
   if (nextPageToken) { 
-    console.log('setting next page')
     parameters.pageToken = nextPageToken
   }
   
   try {
     let response = await window.gapi.client.drive.files.list(parameters);
     files = files.concat(response.result.files)
-    console.log('success req')
     return [files, response.result.nextPageToken];
   } catch(err) {
-    console.log('fail req')
     return [files, nextPageToken];
   }
 }
@@ -69,9 +66,7 @@ async function assembleDirStructure(files) {
     if (parent) {
       parent.children[file.id] = file
     }
-    else {
-      console.log(path, file)
-    }
+    // TODO consider what to do in the else case here (files w/o parent)
     folderPaths[file.id] = path.concat(file.id)
   }
   
@@ -82,7 +77,6 @@ async function assembleDirStructure(files) {
     }
   }
   annotateFileSizes(rootFolder)
-  // console.log(rootFolder)
   return rootFolder
 }
 
