@@ -19,7 +19,7 @@ var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
 class App extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {signedIn: null, dirStructure: null, loading: false, signInError: false}
+    this.state = {signedIn: null, dirStructure: null, loading: false, signInError: false, finishedRequesting: false}
   }
   /**
  *  On load, called to load the auth2 library and API client library.
@@ -134,7 +134,7 @@ async updateSigninStatus(isSignedIn) {
         console.log(nextPageToken)
       } while (nextPageToken && this.state.numRequests < 1) 
     }
-    console.log(files)
+    this.setState({finishedRequesting: true})
     return await assembleDirStructure(files)
   }
 
@@ -155,6 +155,7 @@ async updateSigninStatus(isSignedIn) {
               <br></br>
             {this.state.loading && 'Loading...'}
               <br></br>
+            {this.state.finishedRequesting && 'Finished requesting'}
             {`Number of requests received: ${this.state.numRequests}`}
             {this.state.signInError && 'Sign-in Error'}
             <div className="results">
