@@ -18,7 +18,7 @@ var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
 class App extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {signedIn: null, dirStructure: null, loading: false, signInError: false, finishedRequesting: false}
+    this.state = {signedIn: null, dirStructure: null, loading: false, signInError: false, finishedRequesting: false, numRequests: 0}
   }
   /**
  *  On load, called to load the auth2 library and API client library.
@@ -51,8 +51,8 @@ async initClient() {
 
 async loadFiles() {
   this.setState({loading: true, dirStructure: null})
-  let dirStruct = await this.getAssembledDirStruct()
-  this.setState({dirStructure: dirStruct, loading: false})
+  await this.loadDirStruct()
+  this.setState({finishedRequesting: true, loading: false})
 }
 
 /**
@@ -97,37 +97,26 @@ async updateSigninStatus(isSignedIn) {
     document.body.appendChild(this.script);
   }
 
-  async getAssembledDirStruct() {
+  async loadDirStruct() {
     this.setState({numRequests: 0})
-    let filesStored;
-    let nextPageToken;
-    let files = filesStored ? filesStored : [];
-    if (filesStored && !nextPageToken){
-      console.log('loading cached')
-      files = JSON.parse(filesStored)
-    }
-    else {
-      do {
-        let fileResult = await getFiles(nextPageToken);
-        if (fileResult) {
-          var [newFiles, newNextPageToken] = fileResult
-          console.log('conning new files', files.length)
-          files = files.concat(newFiles)
-          console.log('conning new files', files.length)
-        }
-        else {
-          return false
-        }
-  
-        if (newNextPageToken !== nextPageToken) {
-          nextPageToken = newNextPageToken
-        }
-        this.setState({numRequests: this.state.numRequests + 1})
-        console.log(nextPageToken)
-      } while (nextPageToken && this.state.numRequests < 1) 
-    }
-    this.setState({finishedRequesting: true})
-    return await assembleDirStructure(files)
+    let files = [];
+    let nextPageToken
+    do {
+      let fileResult = await getFiles(nextPageToken);
+      if (fileResult) {
+        var [newFiles, newNextPageToken] = fileResult
+        files = files.concat(newFiles)
+      }
+      else {
+        return false
+      }
+
+      if (newNextPageToken !== nextPageToken) {
+        nextPageToken = newNextPageToken
+      }
+      let assembledDirStructure =  await assembleDirStructure(files)
+      this.setState({numRequests: this.state.numRequests + 1, dirStructure: assembledDirStructure})
+    } while (nextPageToken) 
   }
 
 
