@@ -1,4 +1,6 @@
 import React from 'react';
+import classNames from 'classnames'
+import './NavFile.css';
 
 class NavFile extends React.Component {
   constructor(props) {
@@ -7,20 +9,26 @@ class NavFile extends React.Component {
   }
 
   render() { 
-    let openerButton = null;
-    let handleClick = null;
+    let openerButton;
+    let handleClick;
     if (this.props.children.length > 0) {
       openerButton = this.state.childrenVisible ? '▼' : '▶'
       handleClick = () => this.setState({childrenVisible: !this.state.childrenVisible})
     }
-    return (<div>
-      <p onClick={handleClick}>
-        {/* TODO make/get bytes, kb, mb, gb formatter */}
-        {String.fromCharCode(160).repeat(this.props.level * 4)}
-        {openerButton} {this.props.name} {`(${this.props.bytes / 1000})`}
-        </p>
-      {this.state.childrenVisible && this.props.children}
-      </div>)
+    return (
+      <div className={this.props.level !== 0 && 'row'} style ={{marginLeft: 20}}>
+        <div onClick={handleClick} 
+        className={
+          classNames('rowText', {childrenVisible: this.state.childrenVisible})}>
+          {/* TODO make/get bytes, kb, mb, gb formatter */}
+          <p className='dots'>
+            {this.props.level !== 0 ? String.fromCharCode(183).repeat(4) : String.fromCharCode(160).repeat(3)}
+          </p>
+          {openerButton} {this.props.name} {`(${this.props.bytes / 1000})`}
+          </div>
+        {this.state.childrenVisible && this.props.children}
+        </div>
+    )
   }
 }
 

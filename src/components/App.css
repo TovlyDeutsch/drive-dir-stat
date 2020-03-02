@@ -1,5 +1,6 @@
 .App {
   text-align: left;
+  margin: 40px;
 }
 
 .App-logo {
@@ -16,4 +17,10 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+}
+
+.results {
+  margin-left: -40px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }

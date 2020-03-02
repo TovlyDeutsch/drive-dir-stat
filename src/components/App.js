@@ -132,7 +132,7 @@ async updateSigninStatus(isSignedIn) {
         }
         this.setState({numRequests: this.state.numRequests + 1})
         console.log(nextPageToken)
-      } while (nextPageToken && this.state.numRequests < 5000) 
+      } while (nextPageToken && this.state.numRequests < 1) 
     }
     console.log(files)
     return await assembleDirStructure(files)
@@ -158,7 +158,9 @@ async updateSigninStatus(isSignedIn) {
               <br></br>
             {this.state.numRequests}
             {this.state.signInError && 'Sign-in Error'}
-            {this.state.dirStructure && renderDirStructure(this.state.dirStructure, 0)}
+            <div className="results">
+              {this.state.dirStructure && renderDirStructure(this.state.dirStructure, 0)}
+            </div>
       </div>
     )
   }
