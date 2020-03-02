@@ -1,68 +1,15 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# DriveDirStat
 
-## Available Scripts
+DriveDirStat analyzes your cloud storage to figure out what is taking up space. Currently, it only supports Google Drive but I'd like it to support other services as well (e.g. OneDrive).
 
-In the project directory, you can run:
+## Usage
 
-### `npm start`
+Visit [drive-dir-stat.github.io](https://drive-dir-stat.github.io) and click "sign in" to authorize DriveDirStat. The app will begin sending requests to the Google Drive API. The API is limited to 1000 files per request so if you have many files in your drive, the process will take a while (often > 2 hours); don't close the tab or shut off your computer while this process is running as that will terminate the analysis. Once the app has finished it will display "Finished requesting" and you can explore your drive by clicking on the ▶ icons to open folders.
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Contributing
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+I welcome any contributions! The biggest issue with the app right now is its slowness, which is constrained by the file limit of the Google Drive API. One solution to this might be running the requesting code on a server and notifying the user when their analysis is complete (e.g. via email or push notifications). This wouldn't speed up the process but at least the user wouldn't have to worry about keeping the tab open and their computer on.
 
-### `npm test`
+Another area that could use work is the UI which is relatively basic at the moment.
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+Lastly, I'd like to extend the app to support cloud storage providers other than Google Drive (e.g. OneDrive).
