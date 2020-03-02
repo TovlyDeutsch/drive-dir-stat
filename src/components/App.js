@@ -177,7 +177,6 @@ class App extends React.Component {
             Sign Out
           </button>
         )}
-        {/* <button id="clear_cache" onClick={this.handleCacheClearClick.bind(this)}>Clear cache and reload files</button> */}
         <br></br>
         <br></br>
         {this.state.loading && "Loading..."}
