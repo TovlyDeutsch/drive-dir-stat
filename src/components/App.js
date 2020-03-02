@@ -119,6 +119,7 @@ class App extends React.Component {
 
   async loadDirStruct() {
     this.setState({ numRequests: 0 });
+    sessionStorage.clear();
     let files = [];
     let nextPageToken;
     do {

@@ -34,12 +34,19 @@ async function assembleDirStructure(files) {
     }
     return obj;
   }
-  // TODO cache this
-  let rootFolderResponse = await window.gapi.client.drive.files.get({
-    fileId: "root",
-    fields: fileFields
-  });
-  let rootFolder = attachChildProp(rootFolderResponse.result);
+
+  let cachedRootFolder = sessionStorage.getItem("root");
+  let rootFolder;
+  if (!cachedRootFolder) {
+    let rootFolderResponse = await window.gapi.client.drive.files.get({
+      fileId: "root",
+      fields: fileFields
+    });
+    rootFolder = attachChildProp(rootFolderResponse.result);
+    sessionStorage.setItem("root", JSON.stringify(rootFolder));
+  } else {
+    rootFolder = JSON.parse(cachedRootFolder);
+  }
   let folderPaths = { [rootFolder.id]: [] };
 
   function getFileFromPath(path) {
