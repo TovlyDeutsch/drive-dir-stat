@@ -33,7 +33,7 @@ async function assembleDirStructure(files) {
     }
     return obj;
   }
-
+  // TODO cache this
   let rootFolderResponse = await window.gapi.client.drive.files.get({
     fileId: "root",
     fields: fileFields
