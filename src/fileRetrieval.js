@@ -96,8 +96,20 @@ function annotateFileSizes(file) {
       (acc, childFile) => acc + annotateFileSizes(childFile), 0
       )
   }
-  if (file.name === 'My Drive') {console.log(file.bytes)}
+  file.formattedBytes = formatBytes(file.bytes)
   return file.bytes
+}
+
+function formatBytes(bytes, decimals = 2) {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const dm = Math.max(0, decimals);
+  const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return (bytes / Math.pow(k, i)).toFixed(dm) + ' ' + sizes[i];
 }
 
 export { getFiles, assembleDirStructure}
