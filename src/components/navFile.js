@@ -32,7 +32,7 @@ class NavFile extends React.Component {
               ? String.fromCharCode(183).repeat(4)
               : String.fromCharCode(160).repeat(3)}
           </p>
-          {openerButton} {this.props.name}{" "}
+          {openerButton && <button>{openerButton}</button>} {this.props.name}{" "}
           {this.props.bytes > 0 && `(${this.props.formattedBytes})`}
         </div>
         {this.state.childrenVisible && this.props.children}
