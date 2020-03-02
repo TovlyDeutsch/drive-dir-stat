@@ -1,35 +1,44 @@
-import React from 'react';
-import classNames from 'classnames'
-import './NavFile.css';
+import React from "react";
+import classNames from "classnames";
+import "./NavFile.css";
 
 class NavFile extends React.Component {
   constructor(props) {
-    super(props)
-    this.state = {childrenVisible: false}
+    super(props);
+    this.state = { childrenVisible: false };
   }
 
-  render() { 
+  render() {
     let openerButton;
     let handleClick;
     if (this.props.children.length > 0) {
-      openerButton = this.state.childrenVisible ? '▼' : '▶'
-      handleClick = () => this.setState({childrenVisible: !this.state.childrenVisible})
+      openerButton = this.state.childrenVisible ? "▼" : "▶";
+      handleClick = () =>
+        this.setState({ childrenVisible: !this.state.childrenVisible });
     }
     return (
-      <div className={this.props.level !== 0 && 'row'} style ={{marginLeft: 20}}>
-        <div onClick={handleClick} 
-        className={
-          classNames('rowText', {childrenVisible: this.state.childrenVisible})}>
-          {/* TODO make/get bytes, kb, mb, gb formatter */}
-          <p className='dots'>
-            {this.props.level !== 0 ? String.fromCharCode(183).repeat(4) : String.fromCharCode(160).repeat(3)}
+      <div
+        className={this.props.level !== 0 && "row"}
+        style={{ marginLeft: 20 }}
+      >
+        <div
+          onClick={handleClick}
+          className={classNames("rowText", {
+            childrenVisible: this.state.childrenVisible
+          })}
+        >
+          <p className="dots">
+            {this.props.level !== 0
+              ? String.fromCharCode(183).repeat(4)
+              : String.fromCharCode(160).repeat(3)}
           </p>
-          {openerButton} {this.props.name} {this.props.bytes > 0 && `(${this.props.formattedBytes})`}
-          </div>
-        {this.state.childrenVisible && this.props.children}
+          {openerButton} {this.props.name}{" "}
+          {this.props.bytes > 0 && `(${this.props.formattedBytes})`}
         </div>
-    )
+        {this.state.childrenVisible && this.props.children}
+      </div>
+    );
   }
 }
 
-export default NavFile
+export default NavFile;

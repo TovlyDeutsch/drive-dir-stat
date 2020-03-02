@@ -11,10 +11,10 @@
   border-left: 1px dashed black;
 }
 
-.row:last-child:before{
-  content : "";
+.row:last-child:before {
+  content: "";
   position: absolute;
-  top : 0;
-  height : 18px; 
+  top: 0;
+  height: 18px;
   border-left: 1px dashed black;
 }
