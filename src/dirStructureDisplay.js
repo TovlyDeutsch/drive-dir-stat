@@ -1,5 +1,5 @@
 import React from 'react';
-import NavFile from './components/navFile'
+import NavFile from './components/NavFile'
 
 function renderDirStructure(file, level) {
   let children = [];
