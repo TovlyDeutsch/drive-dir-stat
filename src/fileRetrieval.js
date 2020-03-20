@@ -60,6 +60,7 @@ async function assembleDirStructure(files) {
     return currentObj;
   }
 
+  let filesPlaced = 0;
   for (let file of files) {
     if (!file.parents) {
       console.log(file);
@@ -86,10 +87,11 @@ async function assembleDirStructure(files) {
       delete rootFolder[file.id];
     }
     let parent = getFileFromPath(path);
+    // TODO consider what to do in the else case here (files w/o parent)
     if (parent) {
       parent.children[file.id] = file;
+      filesPlaced++;
     }
-    // TODO consider what to do in the else case here (files w/o parent)
     folderPaths[file.id] = path.concat(file.id);
   }
 
@@ -100,7 +102,7 @@ async function assembleDirStructure(files) {
     }
   }
   annotateFileSizes(rootFolder);
-  return rootFolder;
+  return [rootFolder, filesPlaced];
 }
 
 function annotateFileSizes(file) {

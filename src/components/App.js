@@ -26,7 +26,9 @@ class App extends React.Component {
       loading: false,
       signInError: false,
       finishedRequesting: false,
-      numRequests: 0
+      numRequests: 0,
+      numFiles: 0,
+      numFilesPlaced: 0
     };
   }
   /**
@@ -121,6 +123,7 @@ class App extends React.Component {
       if (fileResult) {
         var [newFiles, newNextPageToken] = fileResult;
         files = files.concat(newFiles);
+        this.setState({ numFiles: files.length });
       } else {
         return false;
       }
@@ -128,9 +131,12 @@ class App extends React.Component {
       if (newNextPageToken !== nextPageToken) {
         nextPageToken = newNextPageToken;
       }
-      let assembledDirStructure = await assembleDirStructure(files);
+      let [assembledDirStructure, filesPlaced] = await assembleDirStructure(
+        files
+      );
       this.setState({
         numRequests: this.state.numRequests + 1,
+        numFilesPlaced: filesPlaced,
         dirStructure: assembledDirStructure
       });
     } while (nextPageToken && this.state.signedIn);
@@ -178,9 +184,13 @@ class App extends React.Component {
         <br></br>
         <br></br>
         {this.state.loading && "Loading..."}
-        <br></br>
         {this.state.finishedRequesting && "Finished requesting"}
-        {`Number of requests received: ${this.state.numRequests}`}
+        <br></br>
+        {`Requests received: ${this.state.numRequests}`}
+        <br></br>
+        {`Files received: ${this.state.numFiles}`}
+        {/* <br></br>
+        {`Files placed in directories (unplaced files will not appear nor contribute to folder sizes): ${this.state.numFilesPlaced}`} */}
         <br></br>
         {this.state.signInError && "Sign-in Error"}
         <div className="results">
