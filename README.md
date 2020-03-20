@@ -1,4 +1,5 @@
 # DriveDirStat
+[![Netlify Status](https://api.netlify.com/api/v1/badges/ec6aa256-e9f9-4cbd-8dfc-04f36677f664/deploy-status)](https://app.netlify.com/sites/drivedirstat/deploys)
 
 DriveDirStat analyzes your cloud storage to figure out what is taking up space. Currently, it only supports Google Drive but I'd like it to support other services as well (e.g. OneDrive).
 
