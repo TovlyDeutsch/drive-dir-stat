@@ -183,9 +183,8 @@ class App extends React.Component {
         )}
         <br></br>
         <br></br>
-        {this.state.loading && "Loading..."}
+        {this.state.loading && <p className="loading">Loading</p>}
         {this.state.finishedRequesting && "Finished requesting"}
-        <br></br>
         {`Requests received: ${this.state.numRequests}`}
         <br></br>
         {`Files received: ${this.state.numFiles}`}
