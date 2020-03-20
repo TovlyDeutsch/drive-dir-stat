@@ -148,8 +148,8 @@ class App extends React.Component {
   render() {
     return (
       <div className="App">
-        <p>DriveDirStat</p>
-        <p>
+        <h1 className="header">DriveDirStat</h1>
+        <p className="intro-text">
           Welcome to DriveDirStat! This tool analyzes what's taking up space in
           your Google Drive.{" "}
           {!this.state.signedIn &&
