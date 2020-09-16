@@ -1,16 +1,29 @@
 let fileFields = "id, name, parents, quotaBytesUsed";
 // TODO figure out how to exclude files in backups ("Computers")
-let mimeQuery =
-  '((not mimeType contains "application/vnd.google-apps") or mimeType = "application/vnd.google-apps.folder")';
 
-async function getFiles(nextPageToken) {
+async function getFilesbyQuotaBytesUsed(nextPageToken) {
+  const fileMimeQuery =
+    '((not mimeType contains "application/vnd.google-apps") and (mimeType != "application/vnd.google-apps.folder"))';
+  const orderBy = "quotaBytesUsed desc";
+  return getFiles(nextPageToken, fileMimeQuery, orderBy);
+}
+
+async function getFoldersByReceny(nextPageToken) {
+  const folderMimeQuery = '(mimeType = "application/vnd.google-apps.folder")';
+  // Not sure what "receny" means but it seems to work well. Other options include "modifiedTime" and "viewedByMeTime"
+  const orderBy = "recency desc";
+  return getFiles(nextPageToken, folderMimeQuery, orderBy);
+}
+
+async function getFiles(nextPageToken, mimeQuery, orderBy) {
   // 1000 is maximum retrieval size
   // adapted from Google Drive API documentation quickstart //(https://developers.google.com/drive/v3/web/quickstart/js)
   let files = [];
   let parameters = {
     pageSize: 1000,
     fields: `nextPageToken, files(${fileFields})`,
-    q: `trashed = false and 'me' in owners and ${mimeQuery}`
+    q: `trashed = false and 'me' in owners and ${mimeQuery}`,
+    orderBy: orderBy,
   };
 
   // if not first request, set the pageToken to the next page
@@ -27,26 +40,30 @@ async function getFiles(nextPageToken) {
   }
 }
 
-async function assembleDirStructure(files) {
-  function attachChildProp(obj) {
-    if (!obj.hasOwnProperty("children")) {
-      obj.children = {};
-    }
-    return obj;
+function attachChildProp(obj) {
+  if (!obj.hasOwnProperty("children")) {
+    obj.children = {};
   }
+  return obj;
+}
 
+async function getRootFolder() {
   let cachedRootFolder = sessionStorage.getItem("root");
   let rootFolder;
   if (!cachedRootFolder) {
     let rootFolderResponse = await window.gapi.client.drive.files.get({
       fileId: "root",
-      fields: fileFields
+      fields: fileFields,
     });
     rootFolder = attachChildProp(rootFolderResponse.result);
     sessionStorage.setItem("root", JSON.stringify(rootFolder));
   } else {
     rootFolder = JSON.parse(cachedRootFolder);
   }
+  return rootFolder;
+}
+
+function assembleDirStructure(files, rootFolder) {
   let folderPaths = { [rootFolder.id]: [] };
 
   function getFileFromPath(path) {
@@ -61,9 +78,10 @@ async function assembleDirStructure(files) {
   }
 
   let filesPlaced = 0;
+  // console.log(files);
   for (let file of files) {
     if (!file.parents) {
-      console.log(file);
+      console.log("parentless file:", file);
       continue;
     }
     let parentId = file.parents[0];
@@ -74,7 +92,7 @@ async function assembleDirStructure(files) {
       rootFolder.children[parentId] = {
         unseen: true,
         id: parentId,
-        children: {}
+        children: {},
       };
     }
     if (
@@ -135,7 +153,7 @@ function formatBytes(bytes, decimals = 2) {
     "PiB",
     "EiB",
     "ZiB",
-    "YiB"
+    "YiB",
   ];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -143,4 +161,9 @@ function formatBytes(bytes, decimals = 2) {
   return (bytes / Math.pow(k, i)).toFixed(dm) + " " + sizes[i];
 }
 
-export { getFiles, assembleDirStructure };
+export {
+  assembleDirStructure,
+  getFilesbyQuotaBytesUsed,
+  getFoldersByReceny,
+  getRootFolder,
+};
