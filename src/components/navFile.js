@@ -24,7 +24,7 @@ class NavFile extends React.Component {
         <div
           onClick={handleClick}
           className={classNames("rowText", {
-            childrenVisible: this.state.childrenVisible
+            childrenVisible: this.state.childrenVisible,
           })}
         >
           <p className="dots">
