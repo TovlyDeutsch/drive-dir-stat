@@ -72,7 +72,7 @@ class App extends React.Component {
         },
         (error) => {
           console.error(error);
-          this.setState({ signInError: true });
+          this.setState({ signInError: true, signedIn: false });
         }
       );
   }
