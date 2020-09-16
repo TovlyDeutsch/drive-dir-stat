@@ -27,12 +27,6 @@ class App extends React.Component {
     super(props);
     // TODO come up with may to make sure this id will not clash with others (maybe symbol or other datatype?)
     // TODO move this dummy root to fileretreival dirstruct functions
-    this.dummyRoot = {
-      name: "All Files",
-      id: "ultimateUniqueRoot",
-      children: {},
-      quotaBytesUsed: "0",
-    };
     this.state = {
       signedIn: null,
       dirStructure: null,

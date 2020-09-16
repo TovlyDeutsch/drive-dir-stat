@@ -64,6 +64,13 @@ async function getRootFolder() {
 }
 
 function assembleDirStructure(files, rootFolder) {
+  // TODO come up with may to make sure this id will not clash with others (maybe symbol or other datatype?)
+  rootFolder = {
+    name: "All Files",
+    id: "ultimateUniqueRoot",
+    children: {},
+    quotaBytesUsed: "0",
+  };
   let folderPaths = { [rootFolder.id]: [] };
 
   function getFileFromPath(path) {
