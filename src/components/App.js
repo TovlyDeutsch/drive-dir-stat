@@ -264,18 +264,22 @@ class App extends React.Component {
         <br></br>
         {this.state.loading && <p className="loading">Loading</p>}
         {this.state.finishedRequesting && "Finished requesting"}
-        {`Requests received: ${this.state.numRequests}`}
-        <br></br>
-        {/* TODO split out files and folders*/}
-        {`Files and Folders received: ${this.state.filesAndFolders.length}`}
-        {/* <br></br>
-        {`Files placed in directories (unplaced files will not appear nor contribute to folder sizes): ${this.state.numFilesPlaced}`} */}
-        <br></br>
         {this.state.signInError && "Sign-in Error"}
-        <div className="results">
-          {this.state.dirStructure &&
-            renderDirStructure(this.state.dirStructure, 0)}
-        </div>
+        {!this.state.loading && this.state.signedIn && (
+          <>
+            {`Requests received: ${this.state.numRequests}`}
+            <br></br>
+            {/* TODO split out files and folders*/}
+            {`Files and Folders received: ${this.state.filesAndFolders.length}`}
+            {/* <br></br>
+        {`Files placed in directories (unplaced files will not appear nor contribute to folder sizes): ${this.state.numFilesPlaced}`} */}
+            <br></br>
+            <div className="results">
+              {this.state.dirStructure &&
+                renderDirStructure(this.state.dirStructure, 0)}
+            </div>
+          </>
+        )}
       </div>
     );
   }
