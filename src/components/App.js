@@ -25,6 +25,14 @@ var SCOPES = "https://www.googleapis.com/auth/drive.metadata.readonly";
 class App extends React.Component {
   constructor(props) {
     super(props);
+    // TODO come up with may to make sure this id will not clash with others (maybe symbol or other datatype?)
+    // TODO move this dummy root to fileretreival dirstruct functions
+    this.dummyRoot = {
+      name: "All Files",
+      id: "ultimateUniqueRoot",
+      children: {},
+      quotaBytesUsed: "0",
+    };
     this.state = {
       signedIn: null,
       dirStructure: null,
@@ -35,9 +43,10 @@ class App extends React.Component {
       numFiles: 0,
       numFilesPlaced: 0,
       filesAndFolders: [],
-      rootFolder: null,
+      rootFolders: [],
     };
   }
+
   /**
    *  On load, called to load the auth2 library and API client library.
    */
@@ -78,14 +87,14 @@ class App extends React.Component {
   }
 
   async loadFiles() {
-    const rootFolder = await getRootFolder();
-    sessionStorage.clear();
-    this.setState({
+    const myDriveFolder = await getRootFolder();
+    this.setState((prevState) => ({
       loading: true,
+      numRequests: 0,
       dirStructure: null,
-      rootFolder: rootFolder,
-    });
-    this.setState({ numRequests: 0 });
+      rootFolders: prevState.rootFolders.concat(myDriveFolder),
+      filesAndFolders: [myDriveFolder],
+    }));
     let fileLoadPromise = this.recursivelyGetFiles();
     let folderLoadPromise = this.recursivelyGetFolders();
     let loadResult = await Promise.all([
@@ -146,7 +155,7 @@ class App extends React.Component {
         if (oldPlusNewFiles.length > prevState.filesAndFolders.length) {
           let [assembledDirStructure, filesPlaced] = assembleDirStructure(
             oldPlusNewFiles,
-            prevState.rootFolder
+            this.dummyRoot
           );
           return {
             filesAndFolders: prevState.filesAndFolders.concat(newFiles),

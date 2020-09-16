@@ -77,12 +77,10 @@ function assembleDirStructure(files, rootFolder) {
     return currentObj;
   }
 
-  let filesPlaced = 0;
-  // console.log(files);
+  let unPlacedFiles = 0;
   for (let file of files) {
     if (!file.parents) {
-      console.log("parentless file:", file);
-      continue;
+      file.parents = [rootFolder.id];
     }
     let parentId = file.parents[0];
     let unseenParent = !folderPaths.hasOwnProperty(parentId);
@@ -105,10 +103,10 @@ function assembleDirStructure(files, rootFolder) {
       delete rootFolder[file.id];
     }
     let parent = getFileFromPath(path);
-    // TODO consider what to do in the else case here (files w/o parent)
     if (parent) {
       parent.children[file.id] = file;
-      filesPlaced++;
+    } else {
+      unPlacedFiles++;
     }
     folderPaths[file.id] = path.concat(file.id);
   }
@@ -120,7 +118,7 @@ function assembleDirStructure(files, rootFolder) {
     }
   }
   annotateFileSizes(rootFolder);
-  return [rootFolder, filesPlaced];
+  return [rootFolder, unPlacedFiles];
 }
 
 function annotateFileSizes(file) {
