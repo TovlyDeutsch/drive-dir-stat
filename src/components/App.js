@@ -10,7 +10,7 @@ var API_KEY = "AIzaSyCx2v-_ROpl1g_-3OK8nMIWJjtJkqkFkew";
 
 // Array of API discovery doc URLs for APIs used by the quickstart
 var DISCOVERY_DOCS = [
-  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"
+  "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
 ];
 
 // Authorization scopes required by the API; multiple scopes can be
@@ -28,7 +28,7 @@ class App extends React.Component {
       finishedRequesting: false,
       numRequests: 0,
       numFiles: 0,
-      numFilesPlaced: 0
+      numFilesPlaced: 0,
     };
   }
   /**
@@ -49,7 +49,7 @@ class App extends React.Component {
         apiKey: API_KEY,
         clientId: CLIENT_ID,
         discoveryDocs: DISCOVERY_DOCS,
-        scope: SCOPES
+        scope: SCOPES,
       })
       .then(
         async () => {
@@ -63,7 +63,7 @@ class App extends React.Component {
             window.gapi.auth2.getAuthInstance().isSignedIn.get()
           );
         },
-        error => {
+        (error) => {
           this.setState({ signInError: true });
         }
       );
@@ -97,7 +97,7 @@ class App extends React.Component {
   /**
    *  Sign out the user upon button click.
    */
-  handleSignoutClick = event => {
+  handleSignoutClick = (event) => {
     this.setState({ signedIn: false });
     window.gapi.auth2.getAuthInstance().signOut();
   };
@@ -107,7 +107,7 @@ class App extends React.Component {
     this.script.src = "https://apis.google.com/js/api.js";
     this.script.async = true;
     this.script.defer = true;
-    this.script.onload = e => {
+    this.script.onload = (e) => {
       this.handleClientLoad();
     };
     document.body.appendChild(this.script);
@@ -137,7 +137,7 @@ class App extends React.Component {
       this.setState({
         numRequests: this.state.numRequests + 1,
         numFilesPlaced: filesPlaced,
-        dirStructure: assembledDirStructure
+        dirStructure: assembledDirStructure,
       });
     } while (nextPageToken && this.state.signedIn);
     if (!this.state.signInError) {
@@ -155,8 +155,8 @@ class App extends React.Component {
           {!this.state.signedIn &&
             'Click the "Authorize" button below to get started.'}{" "}
           Due to limitations in the Google Drive API, this process can take a
-          while (often more than 2 hours!). To keep it running, make don't close
-          this tab, shut off your computer, or put it to sleep. You'll know it's
+          while (often more than 2 hours!). To keep it running, don't close this
+          tab, shut off your computer, or put it to sleep. You'll know it's
           still working if the "Number of requests received" below keeps
           increasing. A "Finished requesting" message will appear below when all
           your files are retrieved, but you can feel free to peruse what's been
