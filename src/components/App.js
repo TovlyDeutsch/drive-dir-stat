@@ -27,7 +27,9 @@ var SCOPES = "https://www.googleapis.com/auth/drive.metadata.readonly";
 class App extends React.Component {
   constructor(props) {
     super(props);
+    this.newfileQueue = [];
     this.nextRequestTime = Date.now();
+    this.lastFileUpdate = Date.now();
     this.maxRequestsPerSecond = 5;
     this.state = {
       signedIn: null,
@@ -142,29 +144,42 @@ class App extends React.Component {
     document.body.appendChild(this.script);
   }
 
+  updateWithNewFiles(newFiles) {
+    this.newfileQueue = this.newfileQueue.concat(newFiles);
+    const maxFileQueueSize = 10000;
+    if (
+      this.newfileQueue.length > maxFileQueueSize ||
+      Date.now() - this.lastFileUpdate > 10e3
+    ) {
+      console.log("updating with ", this.newfileQueue.length);
+      this.setState((prevState) => {
+        const oldPlusNewFiles = prevState.filesAndFolders.concat(
+          this.newfileQueue
+        );
+        this.newfileQueue = [];
+        let [assembledDirStructure, filesPlaced] = assembleDirStructure(
+          oldPlusNewFiles
+        );
+        return {
+          filesAndFolders: prevState.filesAndFolders.concat(newFiles),
+          dirStructure: assembledDirStructure,
+          numFilesPlaced: filesPlaced,
+        };
+      });
+    }
+  }
+
   handleDriveObjReceived = async (
     fileResult,
     stopCondition = (_newFiles) => false
   ) => {
     if (fileResult) {
       var [newFiles, newNextPageToken] = fileResult;
-      this.setState((prevState) => {
-        const oldPlusNewFiles = prevState.filesAndFolders.concat(newFiles);
-        if (oldPlusNewFiles.length > prevState.filesAndFolders.length) {
-          let [assembledDirStructure, filesPlaced] = assembleDirStructure(
-            oldPlusNewFiles
-          );
-          return {
-            filesAndFolders: prevState.filesAndFolders.concat(newFiles),
-            dirStructure: assembledDirStructure,
-            numRequests: prevState.numRequests + 1,
-            numFilesPlaced: filesPlaced,
-          };
-        } else {
-          return { ...prevState, numRequests: prevState.numRequests + 1 };
-        }
-      });
-
+      this.updateWithNewFiles(newFiles);
+      this.setState((prevState) => ({
+        ...prevState,
+        numRequests: prevState.numRequests + 1,
+      }));
       if (stopCondition(newFiles)) {
         return false;
       } else {
@@ -300,6 +315,7 @@ class App extends React.Component {
         )}
         <br></br>
         <br></br>
+        {/* TODO Display file request errors to user (e.g. insufficient permissions)*/}
         {/* {this.state.loading && <p className="loading">Loading</p>} */}
         {this.state.finishedRequesting && "Finished requesting"}
         {this.state.signInError && "Sign-in Error"}
@@ -309,8 +325,7 @@ class App extends React.Component {
             <br></br>
             {/* TODO split out files and folders*/}
             {`Files and Folders received: ${this.state.filesAndFolders.length}`}
-            {/* <br></br>
-        {`Files placed in directories (unplaced files will not appear nor contribute to folder sizes): ${this.state.numFilesPlaced}`} */}
+            {/* <br></br>*/}
             <br></br>
             <div className="results">
               {this.state.dirStructure &&
