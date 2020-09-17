@@ -73,9 +73,9 @@ async function getRootFolder() {
   return rootFolder;
 }
 
-function assembleDirStructure(files, rootFolder) {
+function assembleDirStructure(files) {
   // TODO come up with may to make sure this id will not clash with others (maybe symbol or other datatype?)
-  rootFolder = {
+  let rootFolder = {
     name: "All Files",
     id: "ultimateUniqueRoot",
     children: {},

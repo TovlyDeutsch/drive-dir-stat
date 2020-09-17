@@ -27,9 +27,6 @@ var SCOPES = "https://www.googleapis.com/auth/drive.metadata.readonly";
 class App extends React.Component {
   constructor(props) {
     super(props);
-    // TODO come up with may to make sure this id will not clash with others (maybe symbol or other datatype?)
-    // TODO move this dummy root to fileretreival dirstruct functions
-    // this.requests = [];
     this.nextRequestTime = Date.now();
     this.maxRequestsPerSecond = 5;
     this.state = {
@@ -155,8 +152,7 @@ class App extends React.Component {
         const oldPlusNewFiles = prevState.filesAndFolders.concat(newFiles);
         if (oldPlusNewFiles.length > prevState.filesAndFolders.length) {
           let [assembledDirStructure, filesPlaced] = assembleDirStructure(
-            oldPlusNewFiles,
-            this.dummyRoot
+            oldPlusNewFiles
           );
           return {
             filesAndFolders: prevState.filesAndFolders.concat(newFiles),
