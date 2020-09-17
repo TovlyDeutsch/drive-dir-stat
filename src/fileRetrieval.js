@@ -97,6 +97,7 @@ function assembleDirStructure(files) {
   let unPlacedFiles = 0;
   for (let file of files) {
     if (!file.parents) {
+      // TODO add ability to hide any of the root folder to improve performance/responsiveness
       file.parents = [rootFolder.id];
     }
     let parentId = file.parents[0];
