@@ -307,6 +307,7 @@ class App extends React.Component {
           <>
             {`Requests received: ${this.state.numRequests}`}
             <br></br>
+            {/* TODO add ability to pause updating*/}
             {/* TODO split out files and folders*/}
             {`Files and Folders received: ${this.state.filesAndFolders.length}`}
             {/* <br></br>
