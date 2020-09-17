@@ -1,3 +1,4 @@
+import { mimeTypes } from "./mimeTypes";
 let fileFields = "id, name, parents, quotaBytesUsed";
 // TODO figure out how to exclude files in backups ("Computers")
 
@@ -9,6 +10,17 @@ async function getFilesWithMimeType(nextPageToken, mimeType) {
   const fileMimeQuery = constructMimeQuery(mimeType);
   const orderBy = "quotaBytesUsed desc";
   return getFiles(nextPageToken, fileMimeQuery, orderBy);
+}
+
+async function getFilesWithNoMimeType(nextPageToken) {
+  let fileMimeQuery = '(mimeType != "application/vnd.google-apps.folder")';
+  for (const mimeType of mimeTypes) {
+    fileMimeQuery += ` and (mimeType != "${mimeType}")`;
+  }
+  fileMimeQuery = `(${fileMimeQuery})`;
+  console.log(fileMimeQuery);
+  const orderBy = "quotaBytesUsed desc";
+  getFiles(nextPageToken, fileMimeQuery, orderBy);
 }
 
 async function getFilesbyQuotaBytesUsed(nextPageToken) {
@@ -183,4 +195,5 @@ export {
   getFoldersByReceny,
   getRootFolder,
   getFilesWithMimeType,
+  getFilesWithNoMimeType,
 };

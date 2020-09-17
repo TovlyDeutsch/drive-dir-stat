@@ -5,6 +5,7 @@ import {
   getFoldersByReceny,
   getRootFolder,
   getFilesWithMimeType,
+  getFilesWithNoMimeType,
 } from "../fileRetrieval";
 import { mimeTypes } from "../mimeTypes";
 import { renderDirStructure } from "../dirStructureDisplay";
@@ -92,16 +93,16 @@ class App extends React.Component {
       filesAndFolders: [myDriveFolder],
     }));
     let shardedFilesPromises = this.getFileMimeTypePromises(mimeTypes);
-    this.shardedFilesPromises = shardedFilesPromises;
-    // let fileLoadPromise = this.recursivelyGetFiles();
-    let folderLoadPromise = this.recursivelyGetFolders();
-    Promise.all([shardedFilesPromises, folderLoadPromise])
-      .then(([filesLoaded, foldersLoaded]) => {
-        return filesLoaded && foldersLoaded;
-      })
-      .then((loadResult) => {
-        this.setState({ finishedRequesting: loadResult, loading: false });
-      });
+    // this.shardedFilesPromises = shardedFilesPromises;
+    // // let fileLoadPromise = this.recursivelyGetFiles();
+    // let folderLoadPromise = this.recursivelyGetFolders();
+    // Promise.all([shardedFilesPromises, folderLoadPromise])
+    //   .then(([filesLoaded, foldersLoaded]) => {
+    //     return filesLoaded && foldersLoaded;
+    //   })
+    //   .then((loadResult) => {
+    //     this.setState({ finishedRequesting: loadResult, loading: false });
+    //   });
   }
 
   /**
@@ -183,6 +184,7 @@ class App extends React.Component {
         if (newFiles.length === 0) {
           return true;
         }
+        console.log(newFiles);
         return parseFloat(newFiles[newFiles.length - 1].quotaBytesUsed) === 0.0;
       }
     );
@@ -195,13 +197,13 @@ class App extends React.Component {
   // TODO shard file getter somehow (maybe by file type) for parallel requests
   getFileMimeTypePromises(mimeTypes) {
     let promiseArray = [];
-    for (const mimeType of mimeTypes) {
-      promiseArray.push(this.recursivelyGetFilesWithMimeType(mimeType));
-    }
+    // for (const mimeType of mimeTypes) {
+    //   promiseArray.push(this.recursivelyGetFilesWithMimeType(mimeType));
+    // }
+    promiseArray.push(this.recursivelyGetFilesWithNoMimeType());
     return promiseArray;
   }
 
-  // TODO shard file getter somehow (maybe by file type) for parallel requests
   async recursivelyGetFilesWithMimeType(mimeType, nextPageToken = null) {
     return this.recursivelyGetDriveObjects(
       nextPageToken,
@@ -210,7 +212,14 @@ class App extends React.Component {
     );
   }
 
-  // TODO shard file getter somehow (maybe by file type) for parallel requests
+  async recursivelyGetFilesWithNoMimeType(nextPageToken = null) {
+    return this.recursivelyGetDriveObjects(
+      nextPageToken,
+      getFilesWithNoMimeType,
+      this.handleFilesReceived
+    );
+  }
+
   async recursivelyGetFiles(nextPageToken = null) {
     return this.recursivelyGetDriveObjects(
       nextPageToken,
@@ -235,6 +244,7 @@ class App extends React.Component {
         await new Promise((r) => setTimeout(r, waitTime));
         // this.pruneOldRequests();
       }
+      console.log("going to request");
       this.nextRequestTime = Date.now() + waitTime;
       // this.requests.push(Date.now());
       return objectGetter(nextPageToken)
