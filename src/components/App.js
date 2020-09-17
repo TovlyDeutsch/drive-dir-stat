@@ -237,13 +237,14 @@ class App extends React.Component {
           {!this.state.signedIn &&
             'Click the "Authorize" button below to get started.'}{" "}
           Due to limitations in the Google Drive API, this process can take a
-          while (often more than 2 hours!). To keep it running, don't close this
-          tab, shut off your computer, or put it to sleep. You'll know it's
-          still working if the "Number of requests received" below keeps
-          increasing. A "Finished requesting" message will appear below when all
-          your files are retrieved, but you can feel free to peruse what's been
-          loaded so far in the folders below. If you'd like to contribute to
-          this project visit{" "}
+          while (often a few hours!). To keep it running, don't close this tab.
+          You'll know it's still working if the "Number of requests received"
+          below keeps increasing. A "Finished requesting" message will appear
+          below when all your files are retrieved, but you can feel free to
+          peruse what's been loaded so far in the folders below. Files are
+          loaded from largest to smallest so you should be able to identify
+          heavy hitters before the process is complete. If you'd like to
+          contribute to this project visit{" "}
           <a
             href="https://github.com/TovlyDeutsch/drive-dir-stat"
             target="_blank"
