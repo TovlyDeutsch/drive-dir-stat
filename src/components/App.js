@@ -1,5 +1,10 @@
 import React from "react";
-import { getFiles, assembleDirStructure } from "../fileRetrieval";
+import {
+  assembleDirStructure,
+  getFilesbyQuotaBytesUsed,
+  getFoldersByReceny,
+  getRootFolder,
+} from "../fileRetrieval";
 import { renderDirStructure } from "../dirStructureDisplay";
 import "./App.css";
 
@@ -20,6 +25,8 @@ var SCOPES = "https://www.googleapis.com/auth/drive.metadata.readonly";
 class App extends React.Component {
   constructor(props) {
     super(props);
+    // TODO come up with may to make sure this id will not clash with others (maybe symbol or other datatype?)
+    // TODO move this dummy root to fileretreival dirstruct functions
     this.state = {
       signedIn: null,
       dirStructure: null,
@@ -29,8 +36,11 @@ class App extends React.Component {
       numRequests: 0,
       numFiles: 0,
       numFilesPlaced: 0,
+      filesAndFolders: [],
+      rootFolders: [],
     };
   }
+
   /**
    *  On load, called to load the auth2 library and API client library.
    */
@@ -64,14 +74,29 @@ class App extends React.Component {
           );
         },
         (error) => {
+          console.error(error);
           this.setState({ signInError: true, signedIn: false });
         }
       );
   }
 
   async loadFiles() {
-    this.setState({ loading: true, dirStructure: null });
-    let loadResult = await this.loadDirStruct();
+    const myDriveFolder = await getRootFolder();
+    this.setState((prevState) => ({
+      loading: true,
+      numRequests: 0,
+      dirStructure: null,
+      rootFolders: prevState.rootFolders.concat(myDriveFolder),
+      filesAndFolders: [myDriveFolder],
+    }));
+    let fileLoadPromise = this.recursivelyGetFiles();
+    let folderLoadPromise = this.recursivelyGetFolders();
+    let loadResult = await Promise.all([
+      fileLoadPromise,
+      folderLoadPromise,
+    ]).then(([filesLoaded, foldersLoaded]) => {
+      return filesLoaded && foldersLoaded;
+    });
     this.setState({ finishedRequesting: loadResult, loading: false });
   }
 
@@ -113,35 +138,92 @@ class App extends React.Component {
     document.body.appendChild(this.script);
   }
 
-  async loadDirStruct() {
-    this.setState({ numRequests: 0 });
-    sessionStorage.clear();
-    let files = [];
-    let nextPageToken;
-    do {
-      let fileResult = await getFiles(nextPageToken);
-      if (fileResult) {
-        var [newFiles, newNextPageToken] = fileResult;
-        files = files.concat(newFiles);
-        this.setState({ numFiles: files.length });
-      } else {
-        return false;
-      }
-
-      if (newNextPageToken !== nextPageToken) {
-        nextPageToken = newNextPageToken;
-      }
-      let [assembledDirStructure, filesPlaced] = await assembleDirStructure(
-        files
-      );
-      this.setState({
-        numRequests: this.state.numRequests + 1,
-        numFilesPlaced: filesPlaced,
-        dirStructure: assembledDirStructure,
+  handleDriveObjReceived = async (
+    fileResult,
+    stopCondition = (_newFiles) => false
+  ) => {
+    if (fileResult) {
+      var [newFiles, newNextPageToken] = fileResult;
+      this.setState((prevState) => {
+        const oldPlusNewFiles = prevState.filesAndFolders.concat(newFiles);
+        if (oldPlusNewFiles.length > prevState.filesAndFolders.length) {
+          let [assembledDirStructure, filesPlaced] = assembleDirStructure(
+            oldPlusNewFiles,
+            this.dummyRoot
+          );
+          return {
+            filesAndFolders: prevState.filesAndFolders.concat(newFiles),
+            dirStructure: assembledDirStructure,
+            numRequests: prevState.numRequests + 1,
+            numFilesPlaced: filesPlaced,
+          };
+        } else {
+          return { ...prevState, numRequests: prevState.numRequests + 1 };
+        }
       });
-    } while (nextPageToken && this.state.signedIn);
-    if (!this.state.signInError) {
+      if (stopCondition(newFiles)) {
+        return false;
+      } else {
+        return newNextPageToken;
+      }
+    } else {
       return false;
+    }
+  };
+
+  handleFilesReceived = async (fileResult) => {
+    return this.handleDriveObjReceived(
+      fileResult,
+      // If the last file has zero size, we don't want to bother getting the rest (becase they don't affect quota)
+      (newFiles) => {
+        return parseFloat(newFiles[newFiles.length - 1].quotaBytesUsed) === 0.0;
+      }
+    );
+  };
+
+  handleFolderReceived = async (fileResult) => {
+    return this.handleDriveObjReceived(fileResult);
+  };
+
+  // TODO shard file getter somehow (maybe by file type) for parallel requests
+  async recursivelyGetFiles(nextPageToken) {
+    return this.recursivelyGetDriveObjects(
+      nextPageToken,
+      getFilesbyQuotaBytesUsed,
+      this.handleFilesReceived
+    );
+  }
+
+  async recursivelyGetFolders(nextPageToken) {
+    return this.recursivelyGetDriveObjects(
+      nextPageToken,
+      getFoldersByReceny,
+      this.handleFolderReceived
+    );
+  }
+
+  async recursivelyGetDriveObjects(nextPageToken, objectGetter, resultHandler) {
+    if (this.state.signedIn) {
+      objectGetter(nextPageToken)
+        .then(resultHandler)
+        .then((possibleNextPageToken) => {
+          if (
+            possibleNextPageToken &&
+            possibleNextPageToken !== nextPageToken
+          ) {
+            return this.recursivelyGetDriveObjects(
+              possibleNextPageToken,
+              objectGetter,
+              resultHandler
+            );
+          } else {
+            return true;
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          return false;
+        });
     }
   }
 
@@ -185,17 +267,22 @@ class App extends React.Component {
         <br></br>
         {this.state.loading && <p className="loading">Loading</p>}
         {this.state.finishedRequesting && "Finished requesting"}
-        {`Requests received: ${this.state.numRequests}`}
-        <br></br>
-        {`Files received: ${this.state.numFiles}`}
-        {/* <br></br>
-        {`Files placed in directories (unplaced files will not appear nor contribute to folder sizes): ${this.state.numFilesPlaced}`} */}
-        <br></br>
         {this.state.signInError && "Sign-in Error"}
-        <div className="results">
-          {this.state.dirStructure &&
-            renderDirStructure(this.state.dirStructure, 0)}
-        </div>
+        {!this.state.loading && this.state.signedIn && (
+          <>
+            {`Requests received: ${this.state.numRequests}`}
+            <br></br>
+            {/* TODO split out files and folders*/}
+            {`Files and Folders received: ${this.state.filesAndFolders.length}`}
+            {/* <br></br>
+        {`Files placed in directories (unplaced files will not appear nor contribute to folder sizes): ${this.state.numFilesPlaced}`} */}
+            <br></br>
+            <div className="results">
+              {this.state.dirStructure &&
+                renderDirStructure(this.state.dirStructure, 0)}
+            </div>
+          </>
+        )}
       </div>
     );
   }
