@@ -1,6 +1,16 @@
 let fileFields = "id, name, parents, quotaBytesUsed";
 // TODO figure out how to exclude files in backups ("Computers")
 
+function constructMimeQuery(mimeType) {
+  return `mimeType = "${mimeType}"`;
+}
+
+async function getFilesWithMimeType(nextPageToken, mimeType) {
+  const fileMimeQuery = constructMimeQuery(mimeType);
+  const orderBy = "quotaBytesUsed desc";
+  return getFiles(nextPageToken, fileMimeQuery, orderBy);
+}
+
 async function getFilesbyQuotaBytesUsed(nextPageToken) {
   const fileMimeQuery =
     '((not mimeType contains "application/vnd.google-apps") and (mimeType != "application/vnd.google-apps.folder"))';
@@ -11,7 +21,7 @@ async function getFilesbyQuotaBytesUsed(nextPageToken) {
 async function getFoldersByReceny(nextPageToken) {
   const folderMimeQuery = '(mimeType = "application/vnd.google-apps.folder")';
   // Not sure what "receny" means but it seems to work well. Other options include "modifiedTime" and "viewedByMeTime"
-  const orderBy = "recency desc";
+  const orderBy = "quotaBytesUsed desc, recency desc";
   return getFiles(nextPageToken, folderMimeQuery, orderBy);
 }
 
@@ -171,4 +181,5 @@ export {
   getFilesbyQuotaBytesUsed,
   getFoldersByReceny,
   getRootFolder,
+  getFilesWithMimeType,
 };

@@ -1,10 +1,13 @@
 import React from "react";
+import ReactDOM from "react-dom";
 import {
   assembleDirStructure,
   getFilesbyQuotaBytesUsed,
   getFoldersByReceny,
   getRootFolder,
+  getFilesWithMimeType,
 } from "../fileRetrieval";
+import { mimeTypes } from "../mimeTypes";
 import { renderDirStructure } from "../dirStructureDisplay";
 import "./App.css";
 
@@ -27,6 +30,9 @@ class App extends React.Component {
     super(props);
     // TODO come up with may to make sure this id will not clash with others (maybe symbol or other datatype?)
     // TODO move this dummy root to fileretreival dirstruct functions
+    // this.requests = [];
+    this.nextRequestTime = Date.now();
+    this.maxRequestsPerSecond = 5;
     this.state = {
       signedIn: null,
       dirStructure: null,
@@ -89,15 +95,17 @@ class App extends React.Component {
       rootFolders: prevState.rootFolders.concat(myDriveFolder),
       filesAndFolders: [myDriveFolder],
     }));
-    let fileLoadPromise = this.recursivelyGetFiles();
+    let shardedFilesPromises = this.getFileMimeTypePromises(mimeTypes);
+    this.shardedFilesPromises = shardedFilesPromises;
+    // let fileLoadPromise = this.recursivelyGetFiles();
     let folderLoadPromise = this.recursivelyGetFolders();
-    let loadResult = await Promise.all([
-      fileLoadPromise,
-      folderLoadPromise,
-    ]).then(([filesLoaded, foldersLoaded]) => {
-      return filesLoaded && foldersLoaded;
-    });
-    this.setState({ finishedRequesting: loadResult, loading: false });
+    Promise.all([shardedFilesPromises, folderLoadPromise])
+      .then(([filesLoaded, foldersLoaded]) => {
+        return filesLoaded && foldersLoaded;
+      })
+      .then((loadResult) => {
+        this.setState({ finishedRequesting: loadResult, loading: false });
+      });
   }
 
   /**
@@ -161,6 +169,7 @@ class App extends React.Component {
           return { ...prevState, numRequests: prevState.numRequests + 1 };
         }
       });
+
       if (stopCondition(newFiles)) {
         return false;
       } else {
@@ -176,6 +185,9 @@ class App extends React.Component {
       fileResult,
       // If the last file has zero size, we don't want to bother getting the rest (becase they don't affect quota)
       (newFiles) => {
+        if (newFiles.length === 0) {
+          return true;
+        }
         return parseFloat(newFiles[newFiles.length - 1].quotaBytesUsed) === 0.0;
       }
     );
@@ -186,7 +198,25 @@ class App extends React.Component {
   };
 
   // TODO shard file getter somehow (maybe by file type) for parallel requests
-  async recursivelyGetFiles(nextPageToken) {
+  getFileMimeTypePromises(mimeTypes) {
+    let promiseArray = [];
+    for (const mimeType of mimeTypes) {
+      promiseArray.push(this.recursivelyGetFilesWithMimeType(mimeType));
+    }
+    return promiseArray;
+  }
+
+  // TODO shard file getter somehow (maybe by file type) for parallel requests
+  async recursivelyGetFilesWithMimeType(mimeType, nextPageToken = null) {
+    return this.recursivelyGetDriveObjects(
+      nextPageToken,
+      (pageToken) => getFilesWithMimeType(pageToken, mimeType),
+      this.handleFilesReceived
+    );
+  }
+
+  // TODO shard file getter somehow (maybe by file type) for parallel requests
+  async recursivelyGetFiles(nextPageToken = null) {
     return this.recursivelyGetDriveObjects(
       nextPageToken,
       getFilesbyQuotaBytesUsed,
@@ -194,7 +224,7 @@ class App extends React.Component {
     );
   }
 
-  async recursivelyGetFolders(nextPageToken) {
+  async recursivelyGetFolders(nextPageToken = null) {
     return this.recursivelyGetDriveObjects(
       nextPageToken,
       getFoldersByReceny,
@@ -204,7 +234,15 @@ class App extends React.Component {
 
   async recursivelyGetDriveObjects(nextPageToken, objectGetter, resultHandler) {
     if (this.state.signedIn) {
-      objectGetter(nextPageToken)
+      const waitTime = 1e3 / this.maxRequestsPerSecond;
+      while (Date.now() < this.nextRequestTime) {
+        console.log("waiting");
+        await new Promise((r) => setTimeout(r, waitTime));
+        // this.pruneOldRequests();
+      }
+      this.nextRequestTime = Date.now() + waitTime;
+      // this.requests.push(Date.now());
+      return objectGetter(nextPageToken)
         .then(resultHandler)
         .then((possibleNextPageToken) => {
           if (
@@ -259,16 +297,18 @@ class App extends React.Component {
           </button>
         )}
         {this.state.signedIn === true && (
-          <button id="signout_button" onClick={this.handleSignoutClick}>
-            Sign Out
-          </button>
+          <>
+            <button id="signout_button" onClick={this.handleSignoutClick}>
+              Sign Out
+            </button>
+          </>
         )}
         <br></br>
         <br></br>
-        {this.state.loading && <p className="loading">Loading</p>}
+        {/* {this.state.loading && <p className="loading">Loading</p>} */}
         {this.state.finishedRequesting && "Finished requesting"}
         {this.state.signInError && "Sign-in Error"}
-        {!this.state.loading && this.state.signedIn && (
+        {this.state.signedIn && (
           <>
             {`Requests received: ${this.state.numRequests}`}
             <br></br>
